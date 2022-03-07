@@ -64,11 +64,11 @@ class MRI_7t(Dataset):
         for path_data in path_dataset:
             patient_id = path_data.split('/')[-1]
 
-            path_3t = f'{path_data}/3t_02_norm_crop.nii'
+            path_3t = f'{path_data}/3t_image.nii'
             if seg:
-                path_7t = f'{path_data}/7t_02_norm_crop_tisseg.nii'
+                path_7t = f'{path_data}/7t_tissue_seg.nii'
             else:
-                path_7t = f'{path_data}/7t_02_norm_crop.nii'
+                path_7t = f'{path_data}/7t_image.nii'
 
             x = nib.load(path_3t).get_data()
             y = nib.load(path_7t).get_data()
@@ -95,15 +95,11 @@ def flip_by_axis(x, y, axis):
 
 def rand_scale(x, y, range_min, range_max):
     scale_uniform = np.random.rand(1)[0]
-    # scale_uniform = np.random.rand(3)
     scale = (range_max - range_min) * scale_uniform + range_min
 
     aff_matrix = np.array([[scale, 0, 0],
                            [0, scale, 0],
                            [0, 0, scale]])
-    # aff_matrix = np.array([[scale[0], 0, 0],
-    #                        [0, scale[1], 0],
-    #                        [0, 0, scale[2]]])
 
     center = 0.5 * np.array(x.shape)
     offset = center - center.dot(aff_matrix)
@@ -199,11 +195,9 @@ class IBSR(Dataset):
         for path_data in path_dataset:
             patient_id = path_data.split('/')[-1].split('_')[-1]
 
-            path_x = f'{path_data}/IBSR_{patient_id}_ana_strip_norm.nii'
-            if tissue_seg: # The 'fill' files have any regions of zeros that are inside the brain mask set to 1 (the CSF value). https://www.nitrc.org/forum/message.php?msg_id=25702
+            path_x = f'{path_data}/IBSR_{patient_id}_ana_strip.nii'
+            if tissue_seg:
                 path_y = f'{path_data}/IBSR_{patient_id}_segTRI_fill_ana.nii'
-            # else: # region_seg
-            #     path_y = f'{path_data}/IBSR_{patient_id}_seg_ana.nii.gz'
             path_ulb = f'{path_data}/IBSR_{patient_id}_unlabeled.nii'
 
             x = nib.load(path_x).get_fdata().squeeze()
