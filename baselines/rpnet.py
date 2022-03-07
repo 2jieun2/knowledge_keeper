@@ -22,22 +22,17 @@ from keeper import KnowledgeKeeperNet, FusionModules
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, in_c, out_c, kernel=3, stride=1, pad=1, dropout=False):
+    def __init__(self, in_c, out_c, kernel=3, stride=1, pad=1):
         super().__init__()
-        layers = [
+        self.model = nn.Sequential(
             nn.Conv3d(in_c, out_c, kernel_size=kernel, stride=stride, padding=pad, bias=False),
             nn.BatchNorm3d(out_c),
-            nn.ReLU(inplace=True)
-        ]
-        if dropout:
-            layers.append(nn.Dropout(dropout))
-        layers.extend([
+            nn.ReLU(inplace=True),
             nn.Conv3d(out_c, out_c, kernel_size=kernel, stride=stride, padding=pad, bias=False),
             nn.BatchNorm3d(out_c),
             nn.ReLU(inplace=True)
-        ])
-        self.model = nn.Sequential(*layers)
-
+        )
+        
     def forward(self, x):
         out = self.model(x)
         return out
@@ -311,8 +306,6 @@ class Implementation(object):
 
         dir_model = f'{dir_log}/model/{fold_name}'
         dir_tboard = f'{dir_log}/tboard/{fold_name}'
-        # dir_result = f'{dir_log}/result_valid/{fold_name}'
-        # directory = [dir_log, dir_model, dir_tboard, dir_result]
         directory = [dir_log, dir_model, dir_tboard]
         for dir in directory:
             os.makedirs(dir, exist_ok=True)
