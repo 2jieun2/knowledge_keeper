@@ -206,8 +206,6 @@ class Implementation(object):
 
         dir_model = f'{dir_log}/model/{fold_name}'
         dir_tboard = f'{dir_log}/tboard/{fold_name}'
-        # dir_result = f'{dir_log}/result_valid/{fold_name}'
-        # directory = [dir_log, dir_model, dir_tboard, dir_result]
         directory = [dir_log, dir_model, dir_tboard]
         for dir in directory:
             os.makedirs(dir, exist_ok=True)
@@ -334,10 +332,7 @@ class Implementation(object):
                         pred_y = decoder(keeper(real_x))
                 else:
                     pred_y = decoder(encoder(real_x))
-                # # Dice loss
-                # dice_losses = 1 - cal_dice_score(real_y, pred_y)
-                # loss_total = dice_losses.mean()
-
+                    
                 loss_total = loss_CCE(pred_y, real_y)
 
                 if self.train_net == 'ED':
@@ -416,7 +411,6 @@ class Implementation(object):
             fusion.load_state_dict(fusion_dict)
 
         ##### Testing
-        # self.testing(device, datetime_train, save_output=True)
         dir_all = f'{dir_log}/result_all/'
         os.makedirs(dir_all, exist_ok=True)
         logger_all, stream_handler_all, file_handler_all = logger_setting(file_name=f'{dir_all}/log_all.log')
