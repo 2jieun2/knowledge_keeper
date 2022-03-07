@@ -19,16 +19,14 @@ parser.add_argument('--train_net', type=str, default='ED') # train a segmentatio
 parser.add_argument('--dataset', type=str, default='IBSR') # dataset for segmentation: IBSR / 7T
 
 ##### Dataset path & Directory for saving a log file
-# parser.add_argument('--path_dataset_7T', type=str, default='/home/ubuntu/jelee/dataset/7T_data_01')
-# parser.add_argument('--path_log', type=str, default='./log')
-parser.add_argument('--path_dataset_7T', type=str, default='/DataCommon3/jelee/7T_data_01')
-parser.add_argument('--path_dataset_IBSR', type=str, default='/DataCommon3/jelee/IBSR_norm_01_crop2')
-parser.add_argument('--path_log', type=str, default='/DataCommon3/jelee/log_KnowledgeKeeper')
+parser.add_argument('--path_dataset_7T', type=str, default='/pared_3T_7T')
+parser.add_argument('--path_dataset_IBSR', type=str, default='/IBSR')
+parser.add_argument('--path_log', type=str, default='/log_KnowledgeKeeper')
 
 ##### Datetime(used for directory names) of a trained model
-parser.add_argument('--datetime_teacher', type=str, default='20220102_112500')
-parser.add_argument('--datetime_keeper', type=str, default='20220103_161500')
-parser.add_argument('--datetime_seg', type=str, default='20220216_004637')
+parser.add_argument('--datetime_teacher', type=str, default='yyyymmdd_hhmmss_T')
+parser.add_argument('--datetime_keeper', type=str, default='yyyymmdd_hhmmss_K')
+parser.add_argument('--datetime_seg', type=str, default='yyyymmdd_hhmmss_S')
 
 parser.add_argument('--batch_size', type=int, default=1)
 parser.add_argument('--epochs', type=int, default=200)
