@@ -395,7 +395,6 @@ class Implementation(object):
             dataset = MRI_7t(data_path)
             dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-            # real_y, pred_y, patient_ids = prediction(dataloader, generator_enc, generator_dec, device, dir_all)
             if save_output:
                 real_y, pred_y, patient_ids = self.prediction(dataloader, encoder, decoder, device, dir_all)
             else:
