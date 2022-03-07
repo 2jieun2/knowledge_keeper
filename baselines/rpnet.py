@@ -393,7 +393,7 @@ class Implementation(object):
 
 
         logger.debug('============================================')
-        ##### Pretrained model (Teacher)
+        ##### Pretrained model (Knowledge Keeper)
         if self.guided:
             pretrain_path = f'{self.path_log}/{self.datetime_teacher}_T_{self.datetime_keeper}_K/model/{fold_name}'
             keeper = nn.DataParallel(KnowledgeKeeperNet(self.args)).to(device)
