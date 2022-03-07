@@ -20,21 +20,13 @@ from metrics import cal_psnr_ssim_list
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, in_c, out_c, kernel=3, stride=1, pad=1, dropout=False):
+    def __init__(self, in_c, out_c, kernel=3, stride=1, pad=1):
         super().__init__()
-        layers = [
+        self.model = nn.Sequential(
             nn.Conv3d(in_c, out_c, kernel_size=kernel, stride=stride, padding=pad, bias=False),
             nn.InstanceNorm3d(out_c),
             nn.LeakyReLU(inplace=True)
-        ]
-        if dropout:
-            layers.append(nn.Dropout(dropout))
-        # layers.extend([
-        #     nn.Conv3d(out_c, out_c, kernel_size=3, stride=1, padding=1, bias=False),
-        #     nn.InstanceNorm3d(out_c),
-        #     nn.LeakyReLU(inplace=True)
-        # ])
-        self.model = nn.Sequential(*layers)
+        )
 
     def forward(self, x):
         out = self.model(x)
@@ -180,20 +172,6 @@ class TeacherDecoder(nn.Module):
         return out
 
 
-# class TeacherNet(nn.Module):
-#     def __init__(self, args):
-#         super().__init__()
-#         self.args = args
-#
-#         self.encoder = TeacherEncoder(args)
-#         self.decoder = TeacherDecoder(args)
-#
-#     def forward(self, x):
-#         enc_list = self.encoder(x)
-#         out = self.decoder(enc_list)
-#         return out
-
-
 class Implementation(object):
     def __init__(self, args):
         super().__init__()
@@ -272,10 +250,6 @@ class Implementation(object):
         optimizer_D = torch.optim.Adam(decoder.parameters(), lr=self.lr, betas=(0.9, 0.999))
         optimizer_F = torch.optim.Adam(featrecon.parameters(), lr=self.lr, betas=(0.9, 0.999))
 
-        # scheduler_E = torch.optim.lr_scheduler.StepLR(optimizer_E, step_size=1, gamma=0.99)
-        # scheduler_D = torch.optim.lr_scheduler.StepLR(optimizer_D, step_size=1, gamma=0.99)
-        # scheduler_F = torch.optim.lr_scheduler.StepLR(optimizer_F, step_size=1, gamma=0.99)
-
         logger.debug('============================================')
         logger.debug('[Teacher]')
         logger.debug(str(encoder))
@@ -297,8 +271,6 @@ class Implementation(object):
             featrecon.train()
 
             for i, batch in tqdm(enumerate(train_dataloader), total=len(train_dataloader), desc='Batch'):
-                # logger.debug(f'[Epoch: {epoch} | Batch No.: {i}]')
-
                 real_y = Variable(batch['y']).to(device)
 
                 enc_list = encoder(real_y)
@@ -347,7 +319,6 @@ class Implementation(object):
                 patience += 1
 
             logger.info(f'[Epoch: {epoch}/{self.epochs}]')
-            # logger.info(f'[Epoch: {epoch}/{args.epochs}] lr: {scheduler_E.get_last_lr()}')
             logger.info(
                 f'T loss: {round(loss_T_, 4)} | FR loss: {round(loss_FR_, 4)} | val_psnr: {round(val_psnr, 4)} | val_ssim: {round(val_ssim, 4)} | update: {str(update)}({patience})'
             )
@@ -361,10 +332,6 @@ class Implementation(object):
                 logger.info(
                     f'-------------------------------------------- Early Stopping ! Patience: {self.stop_patience}')
                 break
-
-            # scheduler_E.step()
-            # scheduler_D.step()
-            # scheduler_F.step()
 
         writer.close()
 
@@ -383,11 +350,6 @@ class Implementation(object):
         decoder = nn.DataParallel(TeacherDecoder(self.args)).to(device)
         encoder.load_state_dict(encoder_dict)
         decoder.load_state_dict(decoder_dict)
-
-        # ##### Visualize feature maps
-        # dir_fmap = f'{dir_log}/fmap/{fold_name}/'
-        # os.makedirs(dir_fmap, exist_ok=True)
-        # visualize_feature_maps_self(val_dataloader, encoder, device, dir_fmap)
 
         ##### Testing
         # self.testing(device, datetime_train, save_output=True)
@@ -423,7 +385,6 @@ class Implementation(object):
         logger_all.info('[Fold | Patient ID | PSNR | SSIM]')
 
         fold_names = sorted(os.listdir(f'{dir_log}/model'))
-        # for fold in range(1, 16):
         for fold_name in fold_names:
             dir_model = f'{dir_log}/model/{fold_name}'
             encoder_dict = torch.load(f'{dir_model}/teacher_encoder.pth')
@@ -487,7 +448,6 @@ class Implementation(object):
                     pred_y_list.append(pred_y_)
 
                     if save_pred_path:
-                        # save_nii(real_y, f'{save_pred_path}{patient_id}_real_y')
                         save_nii(pred_y_, f'{save_pred_path}{patient_id}_recon_y')
 
         return real_y_list, pred_y_list, patient_ids
