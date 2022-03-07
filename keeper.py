@@ -127,7 +127,6 @@ class PRMLayer(nn.Module):
         t_position = torch.cat((maxposition//w//d, maxposition//d//h, maxposition//h//w), dim=1)
 
         t_value = x[torch.arange(b),:,t_position[:,0,0,0,0],t_position[:,1,0,0,0],t_position[:,2,0,0,0]]
-        # t_value = t_value.view(b, c, 1, 1, 1)
         return t_value, t_position
 
     def get_similarity(self, query, key_value, mode='dotproduct'):
@@ -136,7 +135,6 @@ class PRMLayer(nn.Module):
         elif mode == 'l1norm':
             similarity = -(abs(query - key_value)).sum(dim=1)
         elif mode == 'gaussian':
-            # Gaussian Similarity (No recommanded, too sensitive to noise)
             similarity = torch.exp(torch.matmul(key_value.permute(0, 2, 1), query))
             similarity[similarity == float("Inf")] = 0
             similarity[similarity <= 1e-9] = 1e-9
@@ -179,7 +177,7 @@ class GuideBlock(nn.Module):
 
 
 class FeatureExtractionBlock(nn.Module):
-    def __init__(self, in_c, out_c, kernel, pad): # out_c => growth rate
+    def __init__(self, in_c, out_c, kernel, pad):
         super().__init__()
         self.conv1 = ConvBlock(in_c, out_c, kernel=kernel, pad=pad)
         self.conv2 = ConvBlock(in_c+out_c, out_c, kernel=kernel, pad=pad)
@@ -540,7 +538,6 @@ class Implementation(object):
         keeper.load_state_dict(keeper_dict)
 
         ##### Testing
-        self.testing(device, datetime_train, save_output=True)
         dir_all = f'{dir_log}/result_all/'
         os.makedirs(dir_all, exist_ok=True)
         logger_all, stream_handler_all, file_handler_all = logger_setting(file_name=f'{dir_all}/log_all.log')
