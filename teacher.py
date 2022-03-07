@@ -155,8 +155,6 @@ class TeacherDecoder(nn.Module):
 
         self.out = nn.Sequential(
             nn.Conv3d(nf, out_c, kernel_size=1, stride=1, bias=False),
-            # nn.Tanh()
-            # nn.LeakyReLU()
         )
 
     def forward(self, enc_list):
@@ -352,7 +350,6 @@ class Implementation(object):
         decoder.load_state_dict(decoder_dict)
 
         ##### Testing
-        # self.testing(device, datetime_train, save_output=True)
         dir_all = f'{dir_log}/result_all/'
         os.makedirs(dir_all, exist_ok=True)
         logger_all, stream_handler_all, file_handler_all = logger_setting(file_name=f'{dir_all}/log_all.log')
