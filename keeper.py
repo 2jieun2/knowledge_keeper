@@ -23,21 +23,13 @@ from teacher import TeacherEncoder, TeacherDecoder
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, in_c, out_c, kernel=3, stride=1, pad=1, dropout=False):
+    def __init__(self, in_c, out_c, kernel=3, stride=1, pad=1):
         super().__init__()
-        layers = [
+        self.model = nn.Sequential(
             nn.Conv3d(in_c, out_c, kernel_size=kernel, stride=stride, padding=pad, bias=False),
             nn.InstanceNorm3d(out_c),
             nn.LeakyReLU(inplace=True)
-        ]
-        if dropout:
-            layers.append(nn.Dropout(dropout))
-        # layers.extend([
-        #     nn.Conv3d(out_c, out_c, kernel_size=3, stride=1, padding=1, bias=False),
-        #     nn.InstanceNorm3d(out_c),
-        #     nn.LeakyReLU(inplace=True)
-        # ])
-        self.model = nn.Sequential(*layers)
+        )
 
     def forward(self, x):
         out = self.model(x)
@@ -104,7 +96,6 @@ class PRMLayer(nn.Module):
         x_value = x.view(b, -1, h*w*d)
         similarity_max = self.get_similarity(x_value, query_value, mode=self.mode)
         similarity_gap = self.get_similarity(x_value, self.gap(x).view(b, -1, 1), mode=self.mode)
-        # similarity_max = similarity_max.view(b, h*w*d)
 
         Distance = abs(position_mask - query_position)
         Distance = Distance.type(query_value.type())
@@ -113,7 +104,6 @@ class PRMLayer(nn.Module):
         Distance = (Distance.mean(dim=1)).view(b, h*w*d)
         similarity_max = similarity_max * Distance
 
-        # similarity_gap = similarity_gap.view(b, h*w*d)
         similarity = similarity_max*self.zero+similarity_gap*self.one
 
         context = similarity - similarity.mean(dim=1, keepdim=True)
@@ -171,7 +161,6 @@ class GuideBlock(nn.Module):
             nn.Sigmoid()
         )
         self.prm = PRMLayer()
-        # self.prm = PRMLayer(mode='cosine')
 
     def forward(self, x, skip_x):
         b, c, h, w, d = skip_x.shape
@@ -195,7 +184,6 @@ class FeatureExtractionBlock(nn.Module):
         self.conv1 = ConvBlock(in_c, out_c, kernel=kernel, pad=pad)
         self.conv2 = ConvBlock(in_c+out_c, out_c, kernel=kernel, pad=pad)
         self.conv3 = ConvBlock(in_c+out_c*2, out_c, kernel=kernel, pad=pad)
-        # self.conv4 = ConvBlock(in_c+out_c*3, out_c, kernel=kernel, pad=pad)
 
     def forward(self, x):
         c1 = self.conv1(x)
@@ -207,9 +195,6 @@ class FeatureExtractionBlock(nn.Module):
         c3 = self.conv3(c3)
 
         c4 = torch.cat([x, c1, c2, c3], dim=1)
-        # c4 = self.conv4(c4)
-        #
-        # out = torch.cat([x, c1, c2, c3, c4], dim=1)
 
         return c4
 
@@ -284,8 +269,6 @@ class Discriminator(nn.Module):
         self.conv4 = ConvBlock(nf*4, nf*8, kernel=4, stride=2, pad=1)
         self.out = nn.Sequential(
             nn.Conv3d(nf*8, 1, kernel_size=4, padding=1, bias=False)
-            # nn.AdaptiveAvgPool3d(output_size=1),
-            # nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -396,10 +379,6 @@ class Implementation(object):
         optimizer_K = torch.optim.Adam(keeper.parameters(), lr=self.lr, betas=(0.9, 0.999))
         optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=self.lr, betas=(0.9, 0.999))
 
-        # scheduler_K = torch.optim.lr_scheduler.StepLR(optimizer_K, step_size=1, gamma=0.99)
-        # scheduler_D = torch.optim.lr_scheduler.StepLR(optimizer_D, step_size=1, gamma=0.99)
-
-
         ##### Pretrained model (Teacher)
         pretrain_path = f'{self.path_log}/{self.datetime_teacher}_T/model/{fold_name}'
 
@@ -437,7 +416,6 @@ class Implementation(object):
             discriminator.train()
 
             for i, batch in tqdm(enumerate(train_dataloader), total=len(train_dataloader), desc='Batch'):
-                # logger.debug(f'[Epoch: {epoch} | Batch No.: {i}]')
                 real_x = Variable(batch['x']).to(device)
                 real_y = Variable(batch['y']).to(device)
 
@@ -459,10 +437,6 @@ class Implementation(object):
 
                 # Total loss
                 loss_D = self.lambda_adv * (loss_D_real + loss_D_fake)
-
-                # logger.debug(
-                #     f'[Discriminator] pred_real (mean): {round(torch.mean(pred_real).item(), 4)} | pred_fake (mean): {round(torch.mean(pred_fake).item(), 4)} | Loss: {round(loss_D.item(), 4)}'
-                # )
 
                 optimizer_D.zero_grad()
                 loss_D.backward()
@@ -491,10 +465,6 @@ class Implementation(object):
 
                 # Total loss
                 loss_K = loss_K_distill_L2 + loss_K_distill_match + loss_K_vox + loss_K_adv
-
-                # logger.debug(
-                #     f'[Generator] pred_fake (mean): {round(torch.mean(pred_fake).item(), 4)} | Adv Loss: {round(loss_G_fake.item(), 4)} | Total Loss: {round(loss_G.item(), 4)}'
-                # )
 
                 optimizer_K.zero_grad()
                 loss_K.backward()
@@ -536,7 +506,6 @@ class Implementation(object):
                 patience += 1
 
             logger.info(f'[Epoch: {epoch}/{self.epochs}]')
-            # logger.info(f'[Epoch: {epoch}/{args.epochs}] lr: {scheduler_K.get_last_lr()}')
             logger.info(
                 f'D loss: {round(loss_D_, 4)} | K loss: {round(loss_K_, 4)} | distill_L2: {round(loss_K_distill_L2_, 4)} | distill_match: {round(loss_K_distill_match_, 4)} | vox: {round(loss_K_vox_, 4)} | adv: {round(loss_K_adv_, 4)} | val_psnr: {round(val_psnr, 4)} | val_ssim: {round(val_ssim, 4)} | valid_update: {str(update)}({patience})'
             )
@@ -554,9 +523,6 @@ class Implementation(object):
                 logger.info(
                     f'-------------------------------------------- Early Stopping ! Patience: {self.stop_patience}')
                 break
-
-            # scheduler_K.step()
-            # scheduler_D.step()
 
         writer.close()
 
@@ -607,7 +573,6 @@ class Implementation(object):
         logger_all.info('[Fold | Patient ID | PSNR | SSIM]')
 
         fold_names = sorted(os.listdir(f'{dir_log}/model'))
-        # for fold in range(1, 16):
         for fold_name in fold_names:
             dir_pretrain = f'{self.path_log}/{self.datetime_teacher}_T/model/{fold_name}'
             teacher_dec_dict = torch.load(f'{dir_pretrain}/teacher_decoder.pth')
