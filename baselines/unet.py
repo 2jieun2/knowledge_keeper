@@ -23,19 +23,14 @@ from keeper import KnowledgeKeeperNet, FusionModules
 class ConvBlock(nn.Module):
     def __init__(self, in_c, out_c, kernel=3, stride=1, pad=1, dropout=False):
         super().__init__()
-        layers = [
+        self.model = nn.Sequential(
             nn.Conv3d(in_c, out_c, kernel_size=kernel, stride=stride, padding=pad, bias=False),
             nn.BatchNorm3d(out_c),
-            nn.ReLU(inplace=True)
-        ]
-        if dropout:
-            layers.append(nn.Dropout(dropout))
-        layers.extend([
+            nn.ReLU(inplace=True),
             nn.Conv3d(out_c, out_c, kernel_size=kernel, stride=stride, padding=pad, bias=False),
             nn.BatchNorm3d(out_c),
             nn.ReLU(inplace=True)
-        ])
-        self.model = nn.Sequential(*layers)
+        )
 
     def forward(self, x):
         out = self.model(x)
@@ -161,8 +156,6 @@ class Implementation(object):
 
         dir_model = f'{dir_log}/model/{fold_name}'
         dir_tboard = f'{dir_log}/tboard/{fold_name}'
-        # dir_result = f'{dir_log}/result_valid/{fold_name}'
-        # directory = [dir_log, dir_model, dir_tboard, dir_result]
         directory = [dir_log, dir_model, dir_tboard]
         for dir in directory:
             os.makedirs(dir, exist_ok=True)
@@ -289,9 +282,6 @@ class Implementation(object):
                         pred_y = decoder(keeper(real_x))
                 else:
                     pred_y = decoder(encoder(real_x))
-                # # Dice loss
-                # dice_losses = 1 - cal_dice_score(real_y, pred_y)
-                # loss_total = dice_losses.mean()
 
                 loss_total = loss_CCE(pred_y, real_y)
 
@@ -371,7 +361,6 @@ class Implementation(object):
             fusion.load_state_dict(fusion_dict)
 
         ##### Testing
-        # self.testing(device, datetime_train, save_output=True)
         dir_all = f'{dir_log}/result_all/'
         os.makedirs(dir_all, exist_ok=True)
         logger_all, stream_handler_all, file_handler_all = logger_setting(file_name=f'{dir_all}/log_all.log')
