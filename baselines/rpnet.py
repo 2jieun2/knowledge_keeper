@@ -519,7 +519,6 @@ class Implementation(object):
             fusion.load_state_dict(fusion_dict)
 
         ##### Testing
-        # self.testing(device, datetime_train, save_output=True)
         dir_all = f'{dir_log}/result_all/'
         os.makedirs(dir_all, exist_ok=True)
         logger_all, stream_handler_all, file_handler_all = logger_setting(file_name=f'{dir_all}/log_all.log')
