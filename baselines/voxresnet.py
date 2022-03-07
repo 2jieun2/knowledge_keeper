@@ -414,11 +414,11 @@ class Implementation(object):
         logger_all, stream_handler_all, file_handler_all = logger_setting(file_name=f'{dir_all}/log_all.log')
         if self.guided:
             if self.train_net == 'ED':
-                real_y_list, pred_y_list, patient_ids = self.prediction_guided_ED(test_dataloader, encoder, decoder, keeper, fusion, device, save_pred_path=dir_all)
+                real_y_list, pred_y_list, patient_ids = self.prediction_guided_ED(test_dataloader, encoder, decoder, keeper, fusion, device, save_pred_path=f'{dir_all}/{fold_name}_')
             else:
-                real_y_list, pred_y_list, patient_ids = self.prediction(test_dataloader, keeper, decoder, device,save_pred_path=dir_all)
+                real_y_list, pred_y_list, patient_ids = self.prediction(test_dataloader, keeper, decoder, device, save_pred_path=f'{dir_all}/{fold_name}_'l)
         else:
-            real_y_list, pred_y_list, patient_ids = self.prediction(test_dataloader, encoder, decoder, device, save_pred_path=dir_all)
+            real_y_list, pred_y_list, patient_ids = self.prediction(test_dataloader, encoder, decoder, device, save_pred_path=f'{dir_all}/{fold_name}_')
         scores_mean, scores = cal_dice_score_list(real_y_list, pred_y_list, return_total=True)
         mean_bg, mean_CSF, mean_GM, mean_WM = scores_mean
         scores_bg, scores_CSF, scores_GM, scores_WM = scores
@@ -496,19 +496,19 @@ class Implementation(object):
             if save_output:
                 if self.guided:
                     if self.train_net == 'ED':
-                        real_y_list, pred_y_list, patient_ids = self.prediction_guided_ED(dataloader, encoder, decoder, keeper, fusion, device, save_pred_path=dir_all)
+                        real_y_list, pred_y_list, patient_ids = self.prediction_guided_ED(dataloader, encoder, decoder, keeper, fusion, device, save_pred_path=f'{dir_all}/{fold_name}_')
                     else:
-                        real_y_list, pred_y_list, patient_ids = self.prediction(dataloader, keeper, decoder, device, save_pred_path=dir_all)
+                        real_y_list, pred_y_list, patient_ids = self.prediction(dataloader, keeper, decoder, device, save_pred_path=f'{dir_all}/{fold_name}_')
                 else:
-                    real_y_list, pred_y_list, patient_ids = self.prediction(dataloader, encoder, decoder, device, save_pred_path=dir_all)
+                    real_y_list, pred_y_list, patient_ids = self.prediction(dataloader, encoder, decoder, device, save_pred_path=f'{dir_all}/{fold_name}_')
             else:
                 if self.guided:
                     if self.train_net == 'ED':
-                        real_y_list, pred_y_list, patient_ids = self.prediction_guided_ED(dataloader, encoder, decoder, keeper, fusion, device, dataset=dataset)
+                        real_y_list, pred_y_list, patient_ids = self.prediction_guided_ED(dataloader, encoder, decoder, keeper, fusion, device)
                     else:
-                        real_y_list, pred_y_list, patient_ids = self.prediction(dataloader, keeper, decoder, device, save_pred_path=dir_all)
+                        real_y_list, pred_y_list, patient_ids = self.prediction(dataloader, keeper, decoder, device)
                 else:
-                    real_y_list, pred_y_list, patient_ids = self.prediction(dataloader, encoder, decoder, device, save_pred_path=dir_all)
+                    real_y_list, pred_y_list, patient_ids = self.prediction(dataloader, encoder, decoder, device)
 
             scores_mean, scores = cal_dice_score_list(real_y_list, pred_y_list, return_total=True)
             mean_bg, mean_CSF, mean_GM, mean_WM = scores_mean
