@@ -400,7 +400,7 @@ class Implementation(object):
         logger.debug(str(discriminator))
         logger.debug('Learning Rate: %.5f' % self.lr)
         logger.debug('Lambda for voxel-wise loss: %d' % self.lambda_vox)
-        logger.debug('Lambda for adversarial loss: %d' % self.lambda_adv)
+        logger.debug('Lambda for adversarial loss: %.2f' % self.lambda_adv)
         logger.debug('============================================')
 
         ##### Training
