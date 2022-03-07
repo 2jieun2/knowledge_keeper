@@ -10,10 +10,6 @@ def logger_setting(file_name):
     stream_handler = logging.StreamHandler()
     file_handler = logging.FileHandler(filename=file_name)
 
-    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # stream_handler.setFormatter(formatter)
-    # file_handler.setFormatter(formatter)
-
     stream_handler.setLevel(logging.INFO)
     file_handler.setLevel(logging.DEBUG)
 
@@ -34,7 +30,6 @@ def logger_closing(logger, stream_handler, file_handler):
 def weights_init_normal(m):
     classname = m.__class__.__name__
     if classname.find('Conv3d') != -1:
-        # nn.init.normal_(m.weight.data, 0.0, 0.02)
         nn.init.kaiming_normal_(m.weight.data, mode='fan_in', nonlinearity="leaky_relu")
     elif classname.find('ConvTranspose3d') != -1:
         nn.init.kaiming_normal_(m.weight.data, mode='fan_in', nonlinearity="leaky_relu")
